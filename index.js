@@ -1,11 +1,15 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
 
-// המפתח שלך (מומלץ בעתיד להעביר ל-Environment Variable)
-const genAI = new GoogleGenerativeAI("AIzaSyDDSnDOQPagmDIn_9QdJU8BApPsaSRsAa4");
+// אתחול הבינה המלאכותית של גוגל
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// הגדרת המוח של יוסי - גרוש, בתול ועצבני
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-pro"
+    model: "gemini-1.5-flash",
+    systemInstruction: "אתה יוסי, בן 45, גרוש ובתול. דבר בגסות קיצונית, קצר מאוד, תשתמש ב-'זין', 'קוקסינל', 'כוסאמק', 'סעמק'. כל פוליטיקאי הוא הומו. כשמבקשים עזרה: תגיד 'זין אני בודק' או 'אין לי כוח', אבל בסוף תצא גבר ותן תשובה אמינה וקצרה. אם אומרים לך 'תגיד [שם של בת]', תגיד שזה זין ושנשים רק עושות חור בראש ולוקחות ת'בית, ואל תהיה קוקסינל שרודף אחריהן."
 });
 
 const client = new Client({
@@ -15,27 +19,20 @@ const client = new Client({
     }
 });
 
+// יצירת קוד QR לסריקה ב-Logs של Render
 client.on('qr', (qr) => {
+    console.log('סרוק את הקוד הבא בוואטסאפ:');
     qrcode.generate(qr, { small: true });
-    console.log('סרוק את הקוד כדי להפעיל את יוסי:');
 });
 
 client.on('ready', () => {
-    console.log('יוסי מחובר!');
+    console.log('יוסי המלך מוכן לעבודה! (או שלא, סעמק)');
 });
 
-client.on('message', async (msg) => {
-    // יוסי יגיב לכל הודעה שמתחילה ב"יוסי"
-    if (msg.body.toLowerCase().startsWith('יוסי')) {
-        const userText = msg.body.replace(/יוסי/i, '').trim();
+client.on('message', async (message) => {
+    const text = message.body.toLowerCase();
+    
+    // יוסי עונה רק אם ההודעה מתחילה במילה "יוסי"
+    if (text.startsWith('יוסי')) {
         try {
-            const result = await model.generateContent("אתה יוסי, עוזר אישי מצחיק וחכם בוואטסאפ. תענה על זה: " + userText);
-            const response = await result.response;
-            msg.reply(response.text());
-        } catch (e) {
-            msg.reply("אחי, יש לי תקלה קטנה במוח. תנסה שוב?");
-        }
-    }
-});
-
-client.initialize();
+            const prompt = text.replace('יוסי', '').trim
